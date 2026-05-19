@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ডেইলি রিকভারি ড্যাশবোর্ড</title>
     <link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a73e8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a73e8">
 </head>
 <body>
     <div class="container">
         <h1>আমার রিকভারি ড্যাশবোর্ড 🛡️</h1>
         
-        <!-- তারিখ নির্বাচন -->
         <div class="header-section">
             <label for="currentDate">আজকের তারিখ:</label>
             <input type="date" id="currentDate">
@@ -20,16 +19,17 @@
 
         <hr>
 
-        <!-- নামাজের সেকশন ও অ্যালার্ম -->
         <div class="section namaz-section">
-            <h3>১. নামাজ ও আধ্যাত্মিক শক্তি</h3>
+            <h3>১. নামাজ ও আধ্যাত্মিক শক্তি 🕌</h3>
             <div class="alarm-toggle">
-                <label>নামাজের অ্যালার্ম/রিমাইন্ডার:</label>
+                <label>অটো নামাজের অ্যালার্ম (বাংলাদেশ সময়):</label>
                 <label class="switch">
                     <input type="checkbox" id="namazAlarmToggle">
                     <span class="slider round"></span>
                 </label>
             </div>
+            <p style="font-size: 12px; color: #5f6368; margin-bottom: 10px;">* অ্যালার্ম অন রাখলে নামাজের ওয়াক্ত শুরু হলেই স্বয়ংক্রিয়ভাবে বেজে উঠবে।</p>
+            
             <div class="checkbox-group namaz-group">
                 <label><input type="checkbox" class="namaz-wakt" value="ফজর"> ফজর</label>
                 <label><input type="checkbox" class="namaz-wakt" value="যোহর"> যোহর</label>
@@ -37,41 +37,61 @@
                 <label><input type="checkbox" class="namaz-wakt" value="মাগরিব"> মাগরিব</label>
                 <label><input type="checkbox" class="namaz-wakt" value="এশা"> এশা</label>
             </div>
+            <audio id="adhanAudio" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
         </div>
 
         <hr>
 
-        <!-- ইনক্রিমেন্টাল ট্র্যাকিং (সিগারেট ও খরচ) -->
-        <div class="section quick-add-section">
-            <h3>২. তাৎক্ষণিক হিসাব (Quick Add)</h3>
+        <div class="section finance-section">
+            <h3>২. পকেট মানি ও সেভিংস 💰</h3>
+            <div class="input-group">
+                <label for="pocketMoney">আজকের শুরুতে পকেট মানি ছিল:</label>
+                <input type="number" id="pocketMoney" value="0" placeholder="যেমন: ১০০০">
+            </div>
+            <div class="input-group">
+                <label for="dailySavings">আজকে কত টাকা সেভিংস/জমা করলি?</label>
+                <input type="number" id="dailySavings" value="0" placeholder="যেমন: ৫০">
+            </div>
             
-            <!-- সিগারেট কাউন্টার -->
+            <div style="background: #e6f4ea; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #ceead6;">
+                <p style="margin-bottom: 5px;">আজকের মোট খরচ: <strong id="totalSpentToday" style="color: #d93025; font-size: 16px;">0</strong> ৳</p>
+                <p>অবশিষ্ট পকেট মানি: <strong id="currentBalance" style="color: #0f9d58; font-size: 18px;">0</strong> ৳</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="section quick-add-section">
+            <h3>৩. তাৎক্ষণিক হিসাব (Quick Add) ⚡</h3>
+            
             <div class="counter-box">
                 <label>আজকের সিগারেট সংখ্যা: <strong id="cigCountDisplay">0</strong></label>
+                <div class="input-group" style="margin-top: 15px; text-align: left;">
+                    <label for="cigPrice">প্রতি সিগারেটের দাম (টাকা):</label>
+                    <input type="number" id="cigPrice" value="15">
+                </div>
+                <p style="margin-top: 5px; font-size: 14px;">সিগারেটে আজকের মোট খরচ: <strong id="cigTotalCostDisplay" style="color: #d93025;">0</strong> ৳</p>
+                
                 <div class="action-buttons">
                     <button id="addCigBtn" class="btn-warning">+১ সিগারেট খেলাম</button>
                     <button id="removeCigBtn" class="btn-danger">-১ (ভুল হলে)</button>
                 </div>
             </div>
 
-            <!-- তাৎক্ষণিক খরচ -->
             <div class="expense-box">
-                <label>নতুন খরচ যোগ কর (জুয়া বাদে):</label>
-                <input type="text" id="expenseNote" placeholder="কীসে খরচ করলি? (যেমন: চা, রিকশা)">
+                <label>নতুন খরচ যোগ কর (জুয়া বা সিগারেট বাদে):</label>
+                <input type="text" id="expenseNote" placeholder="কীসে খরচ করলি? (যেমন: রিকশা)">
                 <input type="number" id="expenseAmount" placeholder="কত টাকা?">
                 <button id="addExpenseBtn" class="btn-primary">খরচ যোগ কর</button>
             </div>
-            <!-- সারাদিনের খরচের লিস্ট -->
             <ul id="dailyExpenseList" class="expense-list">
-                <!-- জাভাস্ক্রিপ্ট দিয়ে এখানে খরচের লিস্ট যুক্ত হবে -->
-            </ul>
+                </ul>
         </div>
 
         <hr>
 
-        <!-- জুয়া এবং অন্যান্য নেশা (দিনের শেষে বা যখন খুশি) -->
         <div class="section gambling-section">
-            <h3>৩. আসক্তি ও ভুলগুলো</h3>
+            <h3>৪. আসক্তি ও ভুলগুলো ⚠️</h3>
             <div class="input-group">
                 <label for="gambled">জুয়া খেলেছিস?</label>
                 <select id="gambled">
@@ -95,23 +115,19 @@
 
         <hr>
 
-        <!-- সামারি ও রিপোর্ট সেকশন (ডেইলি ও মান্থলি) -->
         <div class="section reports-section">
-            <h3>৪. রিপোর্ট ও সামারি 📊</h3>
+            <h3>৫. রিপোর্ট ও সামারি 📊</h3>
             
-            <!-- ট্যাব বাটন -->
             <div class="tab-buttons">
                 <button id="tabDaily" class="tab-btn active">আজকের সামারি</button>
                 <button id="tabMonthly" class="tab-btn">মাসিক রিপোর্ট</button>
             </div>
 
-            <!-- ডেইলি সামারি কন্টেইনার -->
             <div id="dailySummaryContainer" class="report-container active-report">
                 <h4>আজকের সারাংশ:</h4>
                 <p id="dailySummaryText">এখনো কোনো ডাটা নেই।</p>
             </div>
 
-            <!-- মান্থলি সামারি কন্টেইনার -->
             <div id="monthlySummaryContainer" class="report-container" style="display: none;">
                 <div class="input-group">
                     <label for="monthSelector">মাস নির্বাচন কর:</label>
@@ -119,9 +135,10 @@
                 </div>
                 <h4>এই মাসের সারাংশ:</h4>
                 <div id="monthlyStats">
-                    <p>মোট সিগারেট: <span id="monthlyCig">0</span></p>
-                    <p>জুয়ায় মোট লস: <span id="monthlyGamblingLoss">0</span> টাকা</p>
-                    <p>অন্যান্য মোট খরচ: <span id="monthlyTotalExpense">0</span> টাকা</p>
+                    <p>মোট সিগারেট: <span id="monthlyCig">0</span> (খরচ: <span id="monthlyCigExpense">0</span> ৳)</p>
+                    <p>জুয়ায় মোট লস: <span id="monthlyGamblingLoss">0</span> ৳</p>
+                    <p>অন্যান্য মোট খরচ: <span id="monthlyTotalExpense">0</span> ৳</p>
+                    <p style="color: #0f9d58;">মোট সেভিংস: <span id="monthlySavings">0</span> ৳</p>
                     <p>মোট জুয়া খেলেছিস: <span id="monthlyGamblingDays">0</span> দিন</p>
                 </div>
             </div>
