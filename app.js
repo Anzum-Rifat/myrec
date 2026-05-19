@@ -1,8 +1,6 @@
-// --- ১. তারিখ এবং বেসিক সেটআপ ---
+// Date Setup
 const dateInput = document.getElementById('currentDate');
 const monthSelector = document.getElementById('monthSelector');
-
-// আজকের তারিখ অটোমেটিক সেট করা
 const today = new Date();
 const todayString = today.toISOString().split('T')[0];
 const currentMonthString = todayString.slice(0, 7);
@@ -10,208 +8,230 @@ const currentMonthString = todayString.slice(0, 7);
 dateInput.value = todayString;
 monthSelector.value = currentMonthString;
 
-// --- ২. ডাটা সেভ এবং লোড করার ফাংশন (LocalStorage) ---
+// Default Data Structure
 function getDailyData(date) {
     let data = localStorage.getItem('recovery_' + date);
-    if (data) {
-        return JSON.parse(data);
-    } else {
-        // নতুন দিনের জন্য ফাকা ডাটাবেস
-        return {
-            cigarettes: 0,
-            expenses: [],
-            namaz: [],
-            namazAlarm: false,
-            gambled: 'no',
-            gamblingLoss: 0,
-            weed: 'no'
-        };
-    }
-}
-
-function saveDailyData(date, data) {
-    localStorage.setItem('recovery_' + date, JSON.stringify(data));
-    updateDailySummary(date);
+    if (data) return JSON.parse(data);
+    return {
+        pocketMoney: 0,
+        savings: 0,
+        cigarettes: 0,
+        cigPrice: 15,
+        expenses: [],
+        namaz: [],
+        namazAlarm: false,
+        gambled: 'no',
+        gamblingLoss: 0,
+        weed: 'no'
+    };
 }
 
 let currentData = getDailyData(todayString);
 
-// --- ৩. সিগারেট কাউন্টার লজিক ---
+// Element References
+const pocketMoneyInput = document.getElementById('pocketMoney');
+const dailySavingsInput = document.getElementById('dailySavings');
+const totalSpentToday = document.getElementById('totalSpentToday');
+const currentBalance = document.getElementById('currentBalance');
+
 const cigCountDisplay = document.getElementById('cigCountDisplay');
+const cigPriceInput = document.getElementById('cigPrice');
+const cigTotalCostDisplay = document.getElementById('cigTotalCostDisplay');
 
-function updateCigDisplay() {
-    cigCountDisplay.innerText = currentData.cigarettes;
-}
-
-document.getElementById('addCigBtn').addEventListener('click', () => {
-    currentData.cigarettes += 1;
-    saveDailyData(dateInput.value, currentData);
-    updateCigDisplay();
-});
-
-document.getElementById('removeCigBtn').addEventListener('click', () => {
-    if (currentData.cigarettes > 0) {
-        currentData.cigarettes -= 1;
-        saveDailyData(dateInput.value, currentData);
-        updateCigDisplay();
-    }
-});
-
-// --- ৪. খরচের হিসাব (Quick Add) ---
 const expenseNote = document.getElementById('expenseNote');
 const expenseAmount = document.getElementById('expenseAmount');
 const dailyExpenseList = document.getElementById('dailyExpenseList');
 
-function renderExpenses() {
-    dailyExpenseList.innerHTML = '';
-    currentData.expenses.forEach((exp, index) => {
-        let li = document.createElement('li');
-        li.innerHTML = `<span>${exp.note}</span> <span>${exp.amount} ৳</span>`;
-        dailyExpenseList.appendChild(li);
-    });
-}
-
-document.getElementById('addExpenseBtn').addEventListener('click', () => {
-    if (expenseNote.value === '' || expenseAmount.value === '') {
-        alert('খরচের কারণ এবং টাকার পরিমাণ দুটোই লিখতে হবে!');
-        return;
-    }
-    
-    currentData.expenses.push({
-        note: expenseNote.value,
-        amount: parseInt(expenseAmount.value)
-    });
-    
-    saveDailyData(dateInput.value, currentData);
-    renderExpenses();
-    
-    expenseNote.value = '';
-    expenseAmount.value = '';
-});
-
-// --- ৫. সারাদিনের চূড়ান্ত হিসাব সেভ করা (জুয়া, নেশা, নামাজ) ---
 const namazCheckboxes = document.querySelectorAll('.namaz-wakt');
 const namazAlarmToggle = document.getElementById('namazAlarmToggle');
 const gambledSelect = document.getElementById('gambled');
 const gamblingLossInput = document.getElementById('gamblingLoss');
 const weedSelect = document.getElementById('weedStatus');
 
-document.getElementById('saveDailyRecordBtn').addEventListener('click', () => {
-    // নামাজের ডাটা নেওয়া
-    let namazDone = [];
-    namazCheckboxes.forEach(cb => {
-        if (cb.checked) namazDone.push(cb.value);
-    });
+// Update UI and Calculations
+function calculateFinance() {
+    let otherExpenses = currentData.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    let cigExpense = currentData.cigarettes * currentData.cigPrice;
+    let totalKhoroch = otherExpenses + cigExpense + currentData.gamblingLoss;
     
-    currentData.namaz = namazDone;
-    currentData.namazAlarm = namazAlarmToggle.checked;
-    currentData.gambled = gambledSelect.value;
-    currentData.gamblingLoss = parseInt(gamblingLossInput.value) || 0;
-    currentData.weed = weedSelect.value;
-    
-    saveDailyData(dateInput.value, currentData);
-    alert('তোর আজকের চূড়ান্ত হিসাব সফলভাবে সেভ হয়েছে! সাব্বাস, লড়াই চালিয়ে যা!');
-});
+    let balance = currentData.pocketMoney - totalKhoroch;
 
-// --- ৬. ডাটা লোড করে স্ক্রিনে দেখানো (যখন তারিখ বদলাবি) ---
-function loadDataToScreen(date) {
-    currentData = getDailyData(date);
+    totalSpentToday.innerText = totalKhoroch;
+    currentBalance.innerText = balance;
+    cigTotalCostDisplay.innerText = cigExpense;
+}
+
+function updateUI() {
+    pocketMoneyInput.value = currentData.pocketMoney;
+    dailySavingsInput.value = currentData.savings;
+    cigCountDisplay.innerText = currentData.cigarettes;
+    cigPriceInput.value = currentData.cigPrice;
     
-    updateCigDisplay();
-    renderExpenses();
-    
-    // চেকবক্স ও সিলেক্ট বক্স আপডেট
-    namazCheckboxes.forEach(cb => {
-        cb.checked = currentData.namaz.includes(cb.value);
+    dailyExpenseList.innerHTML = '';
+    currentData.expenses.forEach(exp => {
+        let li = document.createElement('li');
+        li.innerHTML = `<span>${exp.note}</span> <span>${exp.amount} ৳</span>`;
+        dailyExpenseList.appendChild(li);
     });
+
+    namazCheckboxes.forEach(cb => { cb.checked = currentData.namaz.includes(cb.value); });
     namazAlarmToggle.checked = currentData.namazAlarm;
     gambledSelect.value = currentData.gambled;
     gamblingLossInput.value = currentData.gamblingLoss;
     weedSelect.value = currentData.weed;
-    
-    updateDailySummary(date);
+
+    calculateFinance();
 }
+
+function saveData() {
+    currentData.pocketMoney = parseFloat(pocketMoneyInput.value) || 0;
+    currentData.savings = parseFloat(dailySavingsInput.value) || 0;
+    currentData.cigPrice = parseFloat(cigPriceInput.value) || 15;
+    currentData.gamblingLoss = parseFloat(gamblingLossInput.value) || 0;
+    
+    let namazDone = [];
+    namazCheckboxes.forEach(cb => { if (cb.checked) namazDone.push(cb.value); });
+    currentData.namaz = namazDone;
+    currentData.namazAlarm = namazAlarmToggle.checked;
+    currentData.gambled = gambledSelect.value;
+    currentData.weed = weedSelect.value;
+
+    localStorage.setItem('recovery_' + dateInput.value, JSON.stringify(currentData));
+    calculateFinance();
+    updateDailySummary();
+}
+
+// Event Listeners for Live Update
+pocketMoneyInput.addEventListener('input', saveData);
+dailySavingsInput.addEventListener('input', saveData);
+cigPriceInput.addEventListener('input', saveData);
+gamblingLossInput.addEventListener('input', saveData);
+gambledSelect.addEventListener('change', saveData);
+weedSelect.addEventListener('change', saveData);
+namazAlarmToggle.addEventListener('change', saveData);
+namazCheckboxes.forEach(cb => cb.addEventListener('change', saveData));
 
 dateInput.addEventListener('change', (e) => {
-    loadDataToScreen(e.target.value);
+    currentData = getDailyData(e.target.value);
+    updateUI();
+    updateDailySummary();
 });
 
-// --- ৭. ডেইলি সামারি আপডেট ---
-function updateDailySummary(date) {
-    let data = getDailyData(date);
-    let totalExpense = data.expenses.reduce((sum, exp) => sum + exp.amount, 0);
-    
-    let summaryHTML = `
-        <strong>তারিখ:</strong> ${date} <br>
-        <strong>নামাজ:</strong> ${data.namaz.length > 0 ? data.namaz.join(', ') : 'এক ওয়াক্তও পড়িসনি!'} <br>
-        <strong>সিগারেট:</strong> ${data.cigarettes} টা <br>
-        <strong>অন্যান্য খরচ:</strong> ${totalExpense} ৳ <br>
-        <strong>জুয়া:</strong> ${data.gambled === 'yes' ? `<span style="color:red">খেলেছিস (লস: ${data.gamblingLoss} ৳) 😞</span>` : `<span style="color:green">খেলিসনি! আলহামদুলিল্লাহ! 🛡️</span>`} <br>
-        <strong>মদ/গাঁজা:</strong> ${data.weed === 'yes' ? 'খেয়েছিস ❌' : 'খাসনি ✅'}
+// Cigarette Buttons
+document.getElementById('addCigBtn').addEventListener('click', () => {
+    currentData.cigarettes++;
+    saveData();
+    updateUI();
+});
+document.getElementById('removeCigBtn').addEventListener('click', () => {
+    if(currentData.cigarettes > 0) currentData.cigarettes--;
+    saveData();
+    updateUI();
+});
+
+// Expense Button
+document.getElementById('addExpenseBtn').addEventListener('click', () => {
+    if(expenseNote.value === '' || expenseAmount.value === '') return alert('Khoroch er biboron aur taka dao!');
+    currentData.expenses.push({ note: expenseNote.value, amount: parseFloat(expenseAmount.value) });
+    saveData();
+    updateUI();
+    expenseNote.value = ''; expenseAmount.value = '';
+});
+
+// Final Save Button
+document.getElementById('saveDailyRecordBtn').addEventListener('click', () => {
+    saveData();
+    alert('Ajker final hisab save kora hoyeche!');
+});
+
+// Daily Summary
+function updateDailySummary() {
+    let cigExp = currentData.cigarettes * currentData.cigPrice;
+    let text = `
+        <strong>Date:</strong> ${dateInput.value} <br>
+        <strong>Namaz:</strong> ${currentData.namaz.length > 0 ? currentData.namaz.join(', ') : 'Poro nai!'} <br>
+        <strong>Cigarettes:</strong> ${currentData.cigarettes} ta (Khoroch: ${cigExp} ৳) <br>
+        <strong>Gambling:</strong> ${currentData.gambled === 'yes' ? `<span style="color:red">Khelecho (Loss: ${currentData.gamblingLoss} ৳)</span>` : `<span style="color:green">Khelo nai!</span>`} <br>
+        <strong>Savings today:</strong> ${currentData.savings} ৳
     `;
-    
-    document.getElementById('dailySummaryText').innerHTML = summaryHTML;
+    document.getElementById('dailySummaryText').innerHTML = text;
 }
 
-// --- ৮. ট্যাব সিস্টেম ও মান্থলি রিপোর্ট ---
-const tabDaily = document.getElementById('tabDaily');
-const tabMonthly = document.getElementById('tabMonthly');
-const dailySummaryContainer = document.getElementById('dailySummaryContainer');
-const monthlySummaryContainer = document.getElementById('monthlySummaryContainer');
-
-tabDaily.addEventListener('click', () => {
-    tabDaily.classList.add('active');
-    tabMonthly.classList.remove('active');
-    dailySummaryContainer.style.display = 'block';
-    monthlySummaryContainer.style.display = 'none';
+// Monthly Tabs & Logic
+document.getElementById('tabDaily').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('tabMonthly').classList.remove('active');
+    document.getElementById('dailySummaryContainer').style.display = 'block';
+    document.getElementById('monthlySummaryContainer').style.display = 'none';
 });
 
-tabMonthly.addEventListener('click', () => {
-    tabMonthly.classList.add('active');
-    tabDaily.classList.remove('active');
-    dailySummaryContainer.style.display = 'none';
-    monthlySummaryContainer.style.display = 'block';
-    calculateMonthlyStats(monthSelector.value);
+document.getElementById('tabMonthly').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('tabDaily').classList.remove('active');
+    document.getElementById('dailySummaryContainer').style.display = 'none';
+    document.getElementById('monthlySummaryContainer').style.display = 'block';
+    calcMonthlyStats(monthSelector.value);
 });
 
-monthSelector.addEventListener('change', (e) => {
-    calculateMonthlyStats(e.target.value);
-});
+monthSelector.addEventListener('change', (e) => calcMonthlyStats(e.target.value));
 
-function calculateMonthlyStats(monthStr) { // monthStr format: "YYYY-MM"
-    let totalCigs = 0;
-    let totalGamblingLoss = 0;
-    let totalExpense = 0;
-    let gamblingDays = 0;
-
-    // পুরো স্টোরেজ ঘুরে এই মাসের ডাটা বের করা
+function calcMonthlyStats(monthStr) {
+    let totCig = 0, totCigExp = 0, totLoss = 0, totExp = 0, totSav = 0, gDays = 0;
     for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
         if (key.startsWith('recovery_' + monthStr)) {
-            let dailyData = JSON.parse(localStorage.getItem(key));
-            
-            totalCigs += dailyData.cigarettes || 0;
-            totalGamblingLoss += dailyData.gamblingLoss || 0;
-            if (dailyData.gambled === 'yes') gamblingDays++;
-            
-            let dailyExp = dailyData.expenses.reduce((sum, exp) => sum + exp.amount, 0);
-            totalExpense += dailyExp;
+            let d = JSON.parse(localStorage.getItem(key));
+            totCig += d.cigarettes || 0;
+            totCigExp += (d.cigarettes * d.cigPrice) || 0;
+            totLoss += d.gamblingLoss || 0;
+            totSav += d.savings || 0;
+            if (d.gambled === 'yes') gDays++;
+            totExp += d.expenses.reduce((s, e) => s + e.amount, 0);
         }
     }
-
-    document.getElementById('monthlyCig').innerText = totalCigs;
-    document.getElementById('monthlyGamblingLoss').innerText = totalGamblingLoss;
-    document.getElementById('monthlyTotalExpense').innerText = totalExpense;
-    document.getElementById('monthlyGamblingDays').innerText = gamblingDays;
+    document.getElementById('monthlyCig').innerText = totCig;
+    document.getElementById('monthlyCigExpense').innerText = totCigExp;
+    document.getElementById('monthlyGamblingLoss').innerText = totLoss;
+    document.getElementById('monthlyTotalExpense').innerText = totExp;
+    document.getElementById('monthlySavings').innerText = totSav;
+    document.getElementById('monthlyGamblingDays').innerText = gDays;
 }
 
-// অ্যাপ চালু হওয়ার সাথে সাথে আজকের ডাটা লোড করা
-loadDataToScreen(todayString);
-// Service Worker Registration (For Offline PWA)
+// Automatic Namaz Alarm for Bangladesh (Dhaka Time)
+const adhanAudio = document.getElementById('adhanAudio');
+let prayerTimes = {};
+
+async function fetchPrayerTimes() {
+    try {
+        let res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Dhaka&country=Bangladesh&method=1');
+        let data = await res.json();
+        prayerTimes = data.data.timings;
+    } catch(err) { console.log('Prayer API error', err); }
+}
+
+function checkAlarm() {
+    if(!namazAlarmToggle.checked) return;
+    
+    let now = new Date();
+    let timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    
+    // Check if current time matches any prayer time
+    if(timeStr === prayerTimes.Fajr || timeStr === prayerTimes.Dhuhr || 
+       timeStr === prayerTimes.Asr || timeStr === prayerTimes.Maghrib || timeStr === prayerTimes.Isha) {
+        adhanAudio.play();
+    }
+}
+
+fetchPrayerTimes();
+setInterval(checkAlarm, 60000); // Check every minute
+
+// Init app
+updateUI();
+updateDailySummary();
+
+// PWA Registration
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker Registered!', reg))
-            .catch(err => console.log('Service Worker Failed!', err));
+        navigator.serviceWorker.register('/sw.js');
     });
 }
