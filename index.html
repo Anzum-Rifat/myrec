@@ -6,21 +6,26 @@
     <title>ডেইলি রিকভারি ড্যাশবোর্ড</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a73e8">
+    <meta name="theme-color" content="#667eea">
 </head>
 <body>
+    <div id="alarmModal" class="alarm-modal">
+        <div class="alarm-content">
+            <h2 id="alarmTitle">⏰ অ্যালার্ম বাজছে!</h2>
+            <button id="stopAlarmBtn" class="btn-danger">অ্যালার্ম বন্ধ করুন</button>
+        </div>
+    </div>
+
     <div class="container">
-        <h1>আমার রিকভারি ড্যাশবোর্ড 🛡️</h1>
+        <h1 class="app-title">আমার রিকভারি ড্যাশবোর্ড 🛡️</h1>
         
-        <div class="header-section">
+        <div class="header-section glossy-card">
             <label for="currentDate">আজকের তারিখ:</label>
             <input type="date" id="currentDate">
         </div>
 
-        <hr>
-
-        <div class="section namaz-section">
-            <h3>১. নামাজ ও আধ্যাত্মিক শক্তি 🕌</h3>
+        <div class="section glossy-card">
+            <h3 class="section-title">১. নামাজ ও আধ্যাত্মিক শক্তি 🕌</h3>
             <div class="alarm-toggle">
                 <label>অটো নামাজের অ্যালার্ম (বাংলাদেশ সময়):</label>
                 <label class="switch">
@@ -28,7 +33,7 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-            <p class="hint-text">* অ্যালার্ম চালু রাখলে ওয়াক্ত শুরু হলেই স্বয়ংক্রিয়ভাবে বেজে উঠবে।</p>
+            <p class="hint-text">* অ্যালার্ম চালু রাখলে ওয়াক্ত শুরু হলেই লাউড রিংটোন বাজবে।</p>
             
             <div class="checkbox-group namaz-group">
                 <label><input type="checkbox" class="namaz-wakt" value="ফজর"> ফজর</label>
@@ -37,23 +42,39 @@
                 <label><input type="checkbox" class="namaz-wakt" value="মাগরিব"> মাগরিব</label>
                 <label><input type="checkbox" class="namaz-wakt" value="এশা"> এশা</label>
             </div>
-            <audio id="adhanAudio" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+            <audio id="adhanAudio" src="https://actions.google.com/sounds/v1/alarms/phone_ringing.ogg" loop preload="auto"></audio>
         </div>
 
-        <hr>
+        <div class="section glossy-card">
+            <h3 class="section-title">২. পকেট মানি ও সেভিংস 💰</h3>
+            
+            <div class="target-savings-box">
+                <h4>🎯 আপনার সেভিংস টার্গেট</h4>
+                <div class="input-group">
+                    <input type="text" id="goalName" placeholder="কীসের জন্য জমাচ্ছেন? (যেমন: নতুন ফোন)">
+                    <input type="number" id="goalAmount" placeholder="টার্গেট কত টাকা?">
+                    <button id="setGoalBtn" class="btn-primary">টার্গেট সেট করুন</button>
+                </div>
+                <div class="progress-container">
+                    <p id="goalStatusText">কোনো টার্গেট সেট করা নেই</p>
+                    <div class="progress-bar-bg">
+                        <div id="goalProgressBar" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="section finance-section">
-            <h3>২. পকেট মানি ও সেভিংস 💰</h3>
+            <hr class="divider">
+
             <div class="input-group">
-                <label>আগের দিনের অবশিষ্ট ব্যালেন্স: <strong id="carryOverBalance" style="color: #1a73e8;">0</strong> ৳</label>
+                <label>আগের দিনের অবশিষ্ট ব্যালেন্স: <strong id="carryOverBalance" class="text-highlight">0</strong> ৳</label>
             </div>
             <div class="input-group">
-                <label for="addedMoney">আজ নতুন করে পকেট মানি পেয়েছেন? (যোগ করুন):</label>
-                <input type="number" id="addedMoney" value="0" placeholder="যেমন: ১০০">
+                <label>আজ নতুন পকেট মানি পেলেন?</label>
+                <input type="number" id="addedMoney" value="0">
             </div>
             <div class="input-group">
-                <label for="dailySavings">আজ কত টাকা সেভিংস/জমা করলেন?</label>
-                <input type="number" id="dailySavings" value="0" placeholder="যেমন: ৫০">
+                <label>আজ কত টাকা সেভিংস/জমা করলেন?</label>
+                <input type="number" id="dailySavings" value="0">
             </div>
             
             <div class="balance-board">
@@ -62,111 +83,109 @@
             </div>
         </div>
 
-        <hr>
+        <div class="section glossy-card">
+            <h3 class="section-title">৩. ধারদেনা ও লেনদেন 🤝</h3>
+            <p class="hint-text">কে আপনার কাছে টাকা পাবে, আর আপনি কার কাছে পাবেন তার হিসাব।</p>
+            <div class="debt-input-box">
+                <input type="text" id="debtPerson" placeholder="ব্যক্তির নাম">
+                <input type="number" id="debtAmount" placeholder="টাকার পরিমাণ">
+                <select id="debtType">
+                    <option value="owe_them">আমি ধার নিয়েছি (সে পাবে)</option>
+                    <option value="they_owe">আমি ধার দিয়েছি (আমি পাব)</option>
+                </select>
+                <button id="addDebtBtn" class="btn-warning">হিসাব যোগ করুন</button>
+            </div>
+            <ul id="debtList" class="debt-list"></ul>
+        </div>
 
-        <div class="section pomodoro-section">
-            <h3>৩. পড়াশোনা (পোমোডোরো টাইমার) 📚</h3>
-            <p class="hint-text">মনোযোগ ধরে রাখতে টাইমার ব্যবহার করে পড়াশোনা করুন।</p>
+        <div class="section glossy-card pomodoro-box">
+            <h3 class="section-title">৪. পড়াশোনা (টাইমার) 📚</h3>
             
             <div class="timer-display">
                 <span id="minutesDisplay">২৫</span>:<span id="secondsDisplay">০০</span>
             </div>
-            
-            <div class="input-group timer-input">
-                <label for="customStudyTime">কত মিনিটের টাইমার সেট করবেন?</label>
-                <input type="number" id="customStudyTime" value="25" min="1">
-            </div>
-            
-            <div class="action-buttons">
-                <button id="startTimerBtn" class="btn-success">টাইমার শুরু করুন</button>
+            <div class="timer-controls">
+                <input type="number" id="customStudyTime" value="25" title="মিনিট">
+                <button id="startTimerBtn" class="btn-success">শুরু করুন</button>
                 <button id="stopTimerBtn" class="btn-danger">থামান</button>
             </div>
-            
-            <p style="margin-top: 15px; text-align: center; font-weight: bold;">আজকে মোট পড়াশোনা করেছেন: <strong id="totalStudyDisplay" style="color: #1a73e8; font-size: 20px;">0</strong> মিনিট</p>
-            <audio id="studyAlarmAudio" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+            <p class="study-stats">আজ মোট পড়েছেন: <strong id="totalStudyDisplay">0</strong> মিনিট</p>
+            <audio id="studyAlarmAudio" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" loop preload="auto"></audio>
         </div>
 
-        <hr>
-
-        <div class="section quick-add-section">
-            <h3>৪. তাৎক্ষণিক খরচ (Quick Add) ⚡</h3>
-            
+        <div class="section glossy-card">
+            <h3 class="section-title">৫. তাৎক্ষণিক খরচ (Quick Add) ⚡</h3>
             <div class="counter-box">
-                <label>আজকের সিগারেট সংখ্যা: <strong id="cigCountDisplay">0</strong></label>
-                <div class="input-group" style="margin-top: 15px; text-align: left;">
-                    <label for="cigPrice">প্রতি সিগারেটের দাম (টাকা):</label>
-                    <input type="number" id="cigPrice" value="15">
+                <label>আজকের সিগারেট: <strong id="cigCountDisplay" class="text-danger">0</strong></label>
+                <div class="cig-controls">
+                    <input type="number" id="cigPrice" value="15" title="দাম">
+                    <button id="addCigBtn" class="btn-warning">+১ খেলাম</button>
+                    <button id="removeCigBtn" class="btn-danger">-১ ভুল</button>
                 </div>
-                <p style="margin-top: 5px; font-size: 14px;">সিগারেটে আজকের মোট খরচ: <strong id="cigTotalCostDisplay" class="text-danger">0</strong> ৳</p>
-                
-                <div class="action-buttons">
-                    <button id="addCigBtn" class="btn-warning">+১ সিগারেট খেলাম</button>
-                    <button id="removeCigBtn" class="btn-danger">-১ (ভুল হলে)</button>
-                </div>
+                <p class="hint-text">সিগারেটে মোট খরচ: <strong id="cigTotalCostDisplay">0</strong> ৳</p>
             </div>
 
             <div class="expense-box">
-                <label>নতুন খরচ যোগ করুন (জুয়া বা সিগারেট বাদে):</label>
-                <input type="text" id="expenseNote" placeholder="কীসে খরচ করলেন? (যেমন: রিকশা)">
+                <input type="text" id="expenseNote" placeholder="কীসে খরচ করলেন?">
                 <input type="number" id="expenseAmount" placeholder="কত টাকা?">
                 <button id="addExpenseBtn" class="btn-primary">খরচ যোগ করুন</button>
             </div>
             <ul id="dailyExpenseList" class="expense-list"></ul>
         </div>
 
-        <hr>
-
-        <div class="section gambling-section">
-            <h3>৫. আসক্তি ও ভুলগুলো ⚠️</h3>
+        <div class="section glossy-card">
+            <h3 class="section-title">৬. আসক্তি ও ভুলগুলো ⚠️</h3>
             <div class="input-group">
-                <label for="gambled">জুয়া খেলেছেন?</label>
+                <label>জুয়া খেলেছেন?</label>
                 <select id="gambled">
-                    <option value="no">না, খেলিনি (আলহামদুলিল্লাহ!)</option>
+                    <option value="no">না (আলহামদুলিল্লাহ!)</option>
                     <option value="yes">হ্যাঁ, খেলেছি</option>
                 </select>
             </div>
             <div class="input-group">
-                <label for="gamblingLoss">জুয়ায় লস (টাকা):</label>
+                <label>জুয়ায় লস (টাকা):</label>
                 <input type="number" id="gamblingLoss" value="0">
             </div>
             <div class="input-group">
-                <label for="weedStatus">মদ/গাঁজা?</label>
+                <label>মদ/গাঁজা?</label>
                 <select id="weedStatus">
                     <option value="no">না</option>
                     <option value="yes">হ্যাঁ</option>
                 </select>
             </div>
-            <button id="saveDailyRecordBtn" class="btn-success" style="width: 100%; margin-top: 15px; padding: 15px; font-size: 16px;">সারাদিনের চূড়ান্ত হিসাব সংরক্ষণ করুন</button>
+            <button id="saveDailyRecordBtn" class="btn-save-final">সারাদিনের চূড়ান্ত হিসাব সেভ করুন</button>
         </div>
 
-        <hr>
-
-        <div class="section reports-section">
-            <h3>৬. রিপোর্ট ও সামারি 📊</h3>
+        <div class="section glossy-card">
+            <h3 class="section-title">৭. রিপোর্ট ও সামারি 📊</h3>
             
             <div class="tab-buttons">
-                <button id="tabDaily" class="tab-btn active">আজকের সামারি</button>
+                <button id="tabDaily" class="tab-btn active">নির্দিষ্ট দিনের সামারি</button>
                 <button id="tabMonthly" class="tab-btn">মাসিক রিপোর্ট</button>
             </div>
 
             <div id="dailySummaryContainer" class="report-container active-report">
-                <h4>আজকের সারাংশ:</h4>
-                <p id="dailySummaryText">এখনো কোনো ডাটা নেই।</p>
+                <div class="input-group">
+                    <label>যেদিনের সামারি দেখতে চান, তারিখ দিন:</label>
+                    <input type="date" id="summaryDateSelector">
+                </div>
+                <div class="summary-content" id="dailySummaryText">
+                    তারিখ সিলেক্ট করুন।
+                </div>
             </div>
 
             <div id="monthlySummaryContainer" class="report-container" style="display: none;">
                 <div class="input-group">
-                    <label for="monthSelector">মাস নির্বাচন করুন:</label>
+                    <label>মাস নির্বাচন করুন:</label>
                     <input type="month" id="monthSelector">
                 </div>
-                <h4>এই মাসের সারাংশ:</h4>
-                <div id="monthlyStats">
-                    <p>মোট পড়াশোনা: <span id="monthlyStudy" style="color: #1a73e8;">0</span> মিনিট</p>
-                    <p>মোট সিগারেট: <span id="monthlyCig">0</span> (খরচ: <span id="monthlyCigExpense">0</span> ৳)</p>
-                    <p>জুয়ায় মোট লস: <span id="monthlyGamblingLoss">0</span> ৳</p>
-                    <p>অন্যান্য মোট খরচ: <span id="monthlyTotalExpense">0</span> ৳</p>
-                    <p style="color: #0f9d58;">মোট সেভিংস: <span id="monthlySavings">0</span> ৳</p>
-                    <p>মোট জুয়া খেলেছেন: <span id="monthlyGamblingDays">0</span> দিন</p>
+                <div class="summary-content" id="monthlyStats">
+                    <p>মোট পড়াশোনা: <strong id="monthlyStudy" class="text-highlight">0</strong> মিনিট</p>
+                    <p>মোট সিগারেট: <strong id="monthlyCig">0</strong> (খরচ: <span id="monthlyCigExpense">0</span> ৳)</p>
+                    <p>জুয়ায় মোট লস: <strong id="monthlyGamblingLoss" class="text-danger">0</strong> ৳</p>
+                    <p>অন্যান্য মোট খরচ: <strong id="monthlyTotalExpense">0</strong> ৳</p>
+                    <p>মোট সেভিংস: <strong id="monthlySavings" class="text-success">0</strong> ৳</p>
+                    <p>মোট জুয়া খেলেছেন: <strong id="monthlyGamblingDays">0</strong> দিন</p>
                 </div>
             </div>
         </div>
