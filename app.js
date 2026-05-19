@@ -1,13 +1,16 @@
+// ১. তারিখ সেটআপ
 const dateInput = document.getElementById('currentDate');
+const summaryDateSelector = document.getElementById('summaryDateSelector');
 const monthSelector = document.getElementById('monthSelector');
 const today = new Date();
 const todayString = today.toISOString().split('T')[0];
 const currentMonthString = todayString.slice(0, 7);
 
 dateInput.value = todayString;
+summaryDateSelector.value = todayString;
 monthSelector.value = currentMonthString;
 
-// আগের দিনের অবশিষ্ট ব্যালেন্স খুঁজে বের করার ফাংশন
+// ২. ডাটা স্ট্রাকচার (আগের দিনের ব্যালেন্স সহ)
 function getPreviousBalance(currentDateStr) {
     let maxDate = "0000-00-00";
     let lastBalance = 0;
@@ -25,52 +28,103 @@ function getPreviousBalance(currentDateStr) {
     return lastBalance;
 }
 
-// ডিফল্ট ডাটা স্ট্রাকচার
 function getDailyData(date) {
     let data = localStorage.getItem('recovery_' + date);
     if (data) return JSON.parse(data);
-    
-    // নতুন দিনের ক্ষেত্রে আগের দিনের ব্যালেন্স নিয়ে আসবে
     let carryOver = getPreviousBalance(date);
     return {
-        basePocketMoney: carryOver,
-        addedMoney: 0,
-        savings: 0,
-        cigarettes: 0,
-        cigPrice: 15,
-        expenses: [],
-        namaz: [],
-        namazAlarm: false,
-        gambled: 'no',
-        gamblingLoss: 0,
-        weed: 'no',
-        studyMinutes: 0,
-        closingBalance: carryOver
+        basePocketMoney: carryOver, addedMoney: 0, savings: 0,
+        cigarettes: 0, cigPrice: 15, expenses: [], namaz: [],
+        namazAlarm: false, gambled: 'no', gamblingLoss: 0,
+        weed: 'no', studyMinutes: 0, closingBalance: carryOver
     };
 }
-
 let currentData = getDailyData(todayString);
 
+// ৩. গ্লোবাল ডাটা (টার্গেট সেভিংস এবং ধারদেনা)
+let targetGoal = JSON.parse(localStorage.getItem('recovery_goal')) || { name: '', target: 0 };
+let debts = JSON.parse(localStorage.getItem('recovery_debts')) || [];
+
 // ইলিমেন্ট রেফারেন্স
-const carryOverBalance = document.getElementById('carryOverBalance');
 const addedMoneyInput = document.getElementById('addedMoney');
 const dailySavingsInput = document.getElementById('dailySavings');
-const totalSpentToday = document.getElementById('totalSpentToday');
-const currentBalance = document.getElementById('currentBalance');
 const cigCountDisplay = document.getElementById('cigCountDisplay');
 const cigPriceInput = document.getElementById('cigPrice');
-const cigTotalCostDisplay = document.getElementById('cigTotalCostDisplay');
-const expenseNote = document.getElementById('expenseNote');
-const expenseAmount = document.getElementById('expenseAmount');
-const dailyExpenseList = document.getElementById('dailyExpenseList');
 const namazCheckboxes = document.querySelectorAll('.namaz-wakt');
 const namazAlarmToggle = document.getElementById('namazAlarmToggle');
 const gambledSelect = document.getElementById('gambled');
 const gamblingLossInput = document.getElementById('gamblingLoss');
 const weedSelect = document.getElementById('weedStatus');
-const totalStudyDisplay = document.getElementById('totalStudyDisplay');
 
-// ফিন্যান্স ক্যালকুলেশন
+// ৪. টার্গেট সেভিংস লজিক
+function updateGoalUI() {
+    if(targetGoal.target > 0) {
+        // সব দিনের সেভিংস যোগ করা
+        let totalSaved = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            if (localStorage.key(i).startsWith('recovery_')) {
+                let d = JSON.parse(localStorage.getItem(localStorage.key(i)));
+                totalSaved += d.savings || 0;
+            }
+        }
+        let percentage = Math.min((totalSaved / targetGoal.target) * 100, 100);
+        document.getElementById('goalStatusText').innerHTML = `<strong>${targetGoal.name}</strong> এর জন্য জমানো হয়েছে: ${totalSaved}/${targetGoal.target} ৳`;
+        document.getElementById('goalProgressBar').style.width = percentage + '%';
+    } else {
+        document.getElementById('goalStatusText').innerText = "কোনো টার্গেট সেট করা নেই";
+        document.getElementById('goalProgressBar').style.width = '0%';
+    }
+}
+document.getElementById('setGoalBtn').addEventListener('click', () => {
+    let name = document.getElementById('goalName').value;
+    let amt = parseFloat(document.getElementById('goalAmount').value);
+    if(name && amt) {
+        targetGoal = { name: name, target: amt };
+        localStorage.setItem('recovery_goal', JSON.stringify(targetGoal));
+        updateGoalUI();
+        alert('নতুন সেভিংস টার্গেট সেট করা হয়েছে!');
+    }
+});
+
+// ৫. ধারদেনা / লেনদেন লজিক
+function renderDebts() {
+    const list = document.getElementById('debtList');
+    list.innerHTML = '';
+    debts.forEach((debt, index) => {
+        let li = document.createElement('li');
+        let typeClass = debt.type === 'owe_them' ? 'debt-owe' : 'debt-get';
+        let typeText = debt.type === 'owe_them' ? 'সে পাবে' : 'আমি পাব';
+        if(debt.paid) li.classList.add('debt-done');
+        
+        li.innerHTML = `
+            <div>
+                <strong>${debt.person}</strong>: ${debt.amount} ৳ <br>
+                <span class="debt-badge ${typeClass}">${typeText}</span>
+            </div>
+            <div>
+                <button onclick="toggleDebt(${index})" style="background:#0984e3; padding:6px 10px; font-size:12px;">${debt.paid ? 'আন-পেইড করুন' : 'শোধ হয়েছে'}</button>
+                <button onclick="deleteDebt(${index})" style="background:#d63031; padding:6px 10px; font-size:12px;">X</button>
+            </div>
+        `;
+        list.appendChild(li);
+    });
+}
+window.toggleDebt = (index) => { debts[index].paid = !debts[index].paid; saveDebts(); };
+window.deleteDebt = (index) => { debts.splice(index, 1); saveDebts(); };
+function saveDebts() { localStorage.setItem('recovery_debts', JSON.stringify(debts)); renderDebts(); }
+
+document.getElementById('addDebtBtn').addEventListener('click', () => {
+    let person = document.getElementById('debtPerson').value;
+    let amt = parseFloat(document.getElementById('debtAmount').value);
+    let type = document.getElementById('debtType').value;
+    if(person && amt) {
+        debts.push({ person, amount: amt, type, paid: false });
+        saveDebts();
+        document.getElementById('debtPerson').value = ''; document.getElementById('debtAmount').value = '';
+    }
+});
+
+// ৬. ফিন্যান্স ও মেইন UI
 function calculateFinance() {
     let otherExpenses = currentData.expenses.reduce((sum, exp) => sum + exp.amount, 0);
     let cigExpense = currentData.cigarettes * currentData.cigPrice;
@@ -78,13 +132,12 @@ function calculateFinance() {
     
     let totalAvailable = currentData.basePocketMoney + currentData.addedMoney;
     let balance = totalAvailable - totalKhoroch;
-    
     currentData.closingBalance = balance;
 
-    carryOverBalance.innerText = currentData.basePocketMoney;
-    totalSpentToday.innerText = totalKhoroch - currentData.savings; // খরচে সেভিংস দেখাবো না
-    currentBalance.innerText = balance;
-    cigTotalCostDisplay.innerText = cigExpense;
+    document.getElementById('carryOverBalance').innerText = currentData.basePocketMoney;
+    document.getElementById('totalSpentToday').innerText = totalKhoroch - currentData.savings; 
+    document.getElementById('currentBalance').innerText = balance;
+    document.getElementById('cigTotalCostDisplay').innerText = cigExpense;
 }
 
 function updateUI() {
@@ -92,13 +145,13 @@ function updateUI() {
     dailySavingsInput.value = currentData.savings;
     cigCountDisplay.innerText = currentData.cigarettes;
     cigPriceInput.value = currentData.cigPrice;
-    totalStudyDisplay.innerText = currentData.studyMinutes;
+    document.getElementById('totalStudyDisplay').innerText = currentData.studyMinutes;
     
-    dailyExpenseList.innerHTML = '';
+    document.getElementById('dailyExpenseList').innerHTML = '';
     currentData.expenses.forEach(exp => {
         let li = document.createElement('li');
-        li.innerHTML = `<span>${exp.note}</span> <span>${exp.amount} ৳</span>`;
-        dailyExpenseList.appendChild(li);
+        li.innerHTML = `<span>${exp.note}</span> <strong>${exp.amount} ৳</strong>`;
+        document.getElementById('dailyExpenseList').appendChild(li);
     });
 
     namazCheckboxes.forEach(cb => { cb.checked = currentData.namaz.includes(cb.value); });
@@ -108,6 +161,8 @@ function updateUI() {
     weedSelect.value = currentData.weed;
 
     calculateFinance();
+    updateGoalUI();
+    renderDebts();
 }
 
 function saveData() {
@@ -123,9 +178,10 @@ function saveData() {
     currentData.gambled = gambledSelect.value;
     currentData.weed = weedSelect.value;
 
-    calculateFinance(); // closingBalance আপডেট করার জন্য
+    calculateFinance();
     localStorage.setItem('recovery_' + dateInput.value, JSON.stringify(currentData));
-    updateDailySummary();
+    updateGoalUI(); // সেভিংস বাড়লে টার্গেট আপডেট হবে
+    generateDailySummary(summaryDateSelector.value); // সামারি আপডেট
 }
 
 // ইভেন্ট লিসেনার
@@ -140,154 +196,126 @@ namazCheckboxes.forEach(cb => cb.addEventListener('change', saveData));
 
 dateInput.addEventListener('change', (e) => {
     currentData = getDailyData(e.target.value);
+    summaryDateSelector.value = e.target.value; // সামারির ডেটও সিঙ্ক হবে
     updateUI();
-    updateDailySummary();
+    generateDailySummary(e.target.value);
 });
 
-// সিগারেট বাটন
-document.getElementById('addCigBtn').addEventListener('click', () => {
-    currentData.cigarettes++;
-    saveData();
-    updateUI();
-});
-document.getElementById('removeCigBtn').addEventListener('click', () => {
-    if(currentData.cigarettes > 0) currentData.cigarettes--;
-    saveData();
-    updateUI();
-});
-
-// খরচ যোগ করা
+// সিগারেট ও খরচ
+document.getElementById('addCigBtn').addEventListener('click', () => { currentData.cigarettes++; saveData(); updateUI(); });
+document.getElementById('removeCigBtn').addEventListener('click', () => { if(currentData.cigarettes > 0) currentData.cigarettes--; saveData(); updateUI(); });
 document.getElementById('addExpenseBtn').addEventListener('click', () => {
-    if(expenseNote.value === '' || expenseAmount.value === '') return alert('খরচের বিবরণ এবং টাকার পরিমাণ দিন!');
-    currentData.expenses.push({ note: expenseNote.value, amount: parseFloat(expenseAmount.value) });
-    saveData();
-    updateUI();
-    expenseNote.value = ''; expenseAmount.value = '';
+    let note = document.getElementById('expenseNote').value;
+    let amt = document.getElementById('expenseAmount').value;
+    if(note && amt) {
+        currentData.expenses.push({ note: note, amount: parseFloat(amt) });
+        saveData(); updateUI();
+        document.getElementById('expenseNote').value = ''; document.getElementById('expenseAmount').value = '';
+    }
 });
 
-// চূড়ান্ত সেভ
-document.getElementById('saveDailyRecordBtn').addEventListener('click', () => {
-    saveData();
-    alert('আজকের চূড়ান্ত হিসাব সফলভাবে সংরক্ষিত হয়েছে!');
-});
+document.getElementById('saveDailyRecordBtn').addEventListener('click', () => { saveData(); alert('হিসাব সংরক্ষিত হয়েছে!'); });
 
-// ডেইলি সামারি
-function updateDailySummary() {
-    let cigExp = currentData.cigarettes * currentData.cigPrice;
+// ৭. নির্দিষ্ট দিনের সামারি ও রিপোর্ট লজিক
+function generateDailySummary(dateStr) {
+    let data = getDailyData(dateStr);
+    let cigExp = data.cigarettes * data.cigPrice;
+    
     let text = `
-        <strong>তারিখ:</strong> ${dateInput.value} <br>
-        <strong>নামাজ:</strong> ${currentData.namaz.length > 0 ? currentData.namaz.join(', ') : 'এক ওয়াক্তও পড়া হয়নি!'} <br>
-        <strong>পড়াশোনা:</strong> ${currentData.studyMinutes} মিনিট <br>
-        <strong>সিগারেট:</strong> ${currentData.cigarettes} টি (খরচ: ${cigExp} ৳) <br>
-        <strong>জুয়া:</strong> ${currentData.gambled === 'yes' ? `<span style="color:red">খেলেছেন (লস: ${currentData.gamblingLoss} ৳)</span>` : `<span style="color:green">খেলেননি! আলহামদুলিল্লাহ!</span>`} <br>
-        <strong>আজকের সেভিংস:</strong> ${currentData.savings} ৳
+        <p><strong>তারিখ:</strong> <span>${dateStr}</span></p>
+        <p><strong>নামাজ:</strong> <span>${data.namaz.length > 0 ? data.namaz.join(', ') : 'পড়া হয়নি! ❌'}</span></p>
+        <p><strong>পড়াশোনা:</strong> <span>${data.studyMinutes} মিনিট</span></p>
+        <p><strong>সিগারেট:</strong> <span>${data.cigarettes} টি (খরচ: ${cigExp} ৳)</span></p>
+        <p><strong>জুয়া:</strong> <span>${data.gambled === 'yes' ? `<strong style="color:red">লস: ${data.gamblingLoss} ৳ 😞</strong>` : `<strong style="color:green">খেলেননি ✅</strong>`}</span></p>
+        <p><strong>সেভিংস:</strong> <span style="color:#00b894; font-weight:bold;">${data.savings} ৳</span></p>
     `;
     document.getElementById('dailySummaryText').innerHTML = text;
 }
 
+summaryDateSelector.addEventListener('change', (e) => { generateDailySummary(e.target.value); });
+
 // রিপোর্ট ট্যাব লজিক
 document.getElementById('tabDaily').addEventListener('click', function() {
-    this.classList.add('active');
-    document.getElementById('tabMonthly').classList.remove('active');
-    document.getElementById('dailySummaryContainer').style.display = 'block';
-    document.getElementById('monthlySummaryContainer').style.display = 'none';
+    this.classList.add('active'); document.getElementById('tabMonthly').classList.remove('active');
+    document.getElementById('dailySummaryContainer').style.display = 'block'; document.getElementById('monthlySummaryContainer').style.display = 'none';
 });
-
 document.getElementById('tabMonthly').addEventListener('click', function() {
-    this.classList.add('active');
-    document.getElementById('tabDaily').classList.remove('active');
-    document.getElementById('dailySummaryContainer').style.display = 'none';
-    document.getElementById('monthlySummaryContainer').style.display = 'block';
+    this.classList.add('active'); document.getElementById('tabDaily').classList.remove('active');
+    document.getElementById('dailySummaryContainer').style.display = 'none'; document.getElementById('monthlySummaryContainer').style.display = 'block';
     calcMonthlyStats(monthSelector.value);
 });
-
 monthSelector.addEventListener('change', (e) => calcMonthlyStats(e.target.value));
 
 function calcMonthlyStats(monthStr) {
-    let totCig = 0, totCigExp = 0, totLoss = 0, totExp = 0, totSav = 0, gDays = 0, totStudy = 0;
+    let tCig = 0, tCigExp = 0, tLoss = 0, tExp = 0, tSav = 0, gDays = 0, tStudy = 0;
     for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
         if (key.startsWith('recovery_' + monthStr)) {
             let d = JSON.parse(localStorage.getItem(key));
-            totCig += d.cigarettes || 0;
-            totCigExp += (d.cigarettes * (d.cigPrice || 15)) || 0;
-            totLoss += d.gamblingLoss || 0;
-            totSav += d.savings || 0;
-            totStudy += d.studyMinutes || 0;
+            tCig += d.cigarettes || 0; tCigExp += (d.cigarettes * (d.cigPrice || 15)) || 0;
+            tLoss += d.gamblingLoss || 0; tSav += d.savings || 0; tStudy += d.studyMinutes || 0;
             if (d.gambled === 'yes') gDays++;
-            totExp += d.expenses ? d.expenses.reduce((s, e) => s + e.amount, 0) : 0;
+            tExp += d.expenses ? d.expenses.reduce((s, e) => s + e.amount, 0) : 0;
         }
     }
-    document.getElementById('monthlyCig').innerText = totCig;
-    document.getElementById('monthlyCigExpense').innerText = totCigExp;
-    document.getElementById('monthlyGamblingLoss').innerText = totLoss;
-    document.getElementById('monthlyTotalExpense').innerText = totExp;
-    document.getElementById('monthlySavings').innerText = totSav;
-    document.getElementById('monthlyGamblingDays').innerText = gDays;
-    document.getElementById('monthlyStudy').innerText = totStudy;
+    document.getElementById('monthlyCig').innerText = tCig; document.getElementById('monthlyCigExpense').innerText = tCigExp;
+    document.getElementById('monthlyGamblingLoss').innerText = tLoss; document.getElementById('monthlyTotalExpense').innerText = tExp;
+    document.getElementById('monthlySavings').innerText = tSav; document.getElementById('monthlyGamblingDays').innerText = gDays;
+    document.getElementById('monthlyStudy').innerText = tStudy;
 }
 
-// ==========================================
-// পোমোডোরো টাইমার লজিক
-// ==========================================
-let timerInterval;
-let timeRemaining = 0;
-let isTimerRunning = false;
-let currentSessionMinutes = 0;
+// ৮. গ্লোবাল অ্যালার্ম মডাল সিস্টেম
+const alarmModal = document.getElementById('alarmModal');
+const alarmTitle = document.getElementById('alarmTitle');
+const stopAlarmBtn = document.getElementById('stopAlarmBtn');
+let currentPlayingAudio = null;
 
-const minutesDisplay = document.getElementById('minutesDisplay');
-const secondsDisplay = document.getElementById('secondsDisplay');
-const customStudyTime = document.getElementById('customStudyTime');
-const studyAlarmAudio = document.getElementById('studyAlarmAudio');
+function playAlarm(audioElement, titleText) {
+    alarmTitle.innerText = titleText;
+    alarmModal.style.display = 'flex';
+    currentPlayingAudio = audioElement;
+    currentPlayingAudio.play();
+}
+
+stopAlarmBtn.addEventListener('click', () => {
+    if(currentPlayingAudio) {
+        currentPlayingAudio.pause();
+        currentPlayingAudio.currentTime = 0;
+    }
+    alarmModal.style.display = 'none';
+});
+
+// ৯. পোমোডোরো টাইমার
+let timerInterval; let timeRemaining = 0; let isTimerRunning = false; let currentSessionMinutes = 0;
+const studyAudio = document.getElementById('studyAlarmAudio');
 
 function updateTimerDisplay() {
-    let m = Math.floor(timeRemaining / 60);
-    let s = timeRemaining % 60;
-    minutesDisplay.innerText = m.toString().padStart(2, '0');
-    secondsDisplay.innerText = s.toString().padStart(2, '0');
+    document.getElementById('minutesDisplay').innerText = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+    document.getElementById('secondsDisplay').innerText = (timeRemaining % 60).toString().padStart(2, '0');
 }
-
 document.getElementById('startTimerBtn').addEventListener('click', () => {
     if (isTimerRunning) return;
-    let mins = parseInt(customStudyTime.value);
-    if (isNaN(mins) || mins <= 0) return alert('সঠিক সময় নির্ধারণ করুন!');
+    let mins = parseInt(document.getElementById('customStudyTime').value);
+    if (isNaN(mins) || mins <= 0) return alert('সঠিক সময় দিন!');
     
-    currentSessionMinutes = mins;
-    timeRemaining = mins * 60;
-    isTimerRunning = true;
-    updateTimerDisplay();
+    currentSessionMinutes = mins; timeRemaining = mins * 60; isTimerRunning = true; updateTimerDisplay();
     
     timerInterval = setInterval(() => {
-        timeRemaining--;
-        updateTimerDisplay();
-        
+        timeRemaining--; updateTimerDisplay();
         if (timeRemaining <= 0) {
-            clearInterval(timerInterval);
-            isTimerRunning = false;
-            studyAlarmAudio.play();
-            alert('টাইমার শেষ! দারুণ পড়াশোনা হয়েছে।');
-            
-            // মোট স্টাডি টাইমে যোগ করা
-            currentData.studyMinutes += currentSessionMinutes;
-            saveData();
-            updateUI();
+            clearInterval(timerInterval); isTimerRunning = false;
+            currentData.studyMinutes += currentSessionMinutes; saveData(); updateUI();
+            playAlarm(studyAudio, '⏰ পড়া শেষ! ব্রেক নিন।');
         }
     }, 1000);
 });
-
 document.getElementById('stopTimerBtn').addEventListener('click', () => {
-    clearInterval(timerInterval);
-    isTimerRunning = false;
-    timeRemaining = 0;
-    updateTimerDisplay();
+    clearInterval(timerInterval); isTimerRunning = false; timeRemaining = 0; updateTimerDisplay();
 });
 
-// ==========================================
-// অটোমেটিক নামাজের অ্যালার্ম (বাংলাদেশ সময়)
-// ==========================================
+// ১০. অটোমেটিক নামাজ অ্যালার্ম
 const adhanAudio = document.getElementById('adhanAudio');
 let prayerTimes = {};
-
 async function fetchPrayerTimes() {
     try {
         let res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Dhaka&country=Bangladesh&method=1');
@@ -295,23 +323,23 @@ async function fetchPrayerTimes() {
         prayerTimes = data.data.timings;
     } catch(err) { console.log('Prayer API error', err); }
 }
-
 function checkAlarm() {
     if(!namazAlarmToggle.checked) return;
-    
     let now = new Date();
     let timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
     
-    if(timeStr === prayerTimes.Fajr || timeStr === prayerTimes.Dhuhr || 
-       timeStr === prayerTimes.Asr || timeStr === prayerTimes.Maghrib || timeStr === prayerTimes.Isha) {
-        adhanAudio.play();
-        alert('নামাজের সময় হয়েছে!');
+    let currentWakt = "";
+    if(timeStr === prayerTimes.Fajr) currentWakt = "ফজর";
+    else if(timeStr === prayerTimes.Dhuhr) currentWakt = "যোহর";
+    else if(timeStr === prayerTimes.Asr) currentWakt = "আসর";
+    else if(timeStr === prayerTimes.Maghrib) currentWakt = "মাগরিব";
+    else if(timeStr === prayerTimes.Isha) currentWakt = "এশা";
+
+    if(currentWakt !== "") {
+        playAlarm(adhanAudio, `🕌 ${currentWakt} নামাজের সময় হয়েছে!`);
     }
 }
+fetchPrayerTimes(); setInterval(checkAlarm, 60000);
 
-fetchPrayerTimes();
-setInterval(checkAlarm, 60000); // প্রতি মিনিটে চেক করবে
-
-// অ্যাপ চালু হওয়া
-updateUI();
-updateDailySummary();
+// ইনিশিয়াল লোড
+updateUI(); generateDailySummary(todayString);
