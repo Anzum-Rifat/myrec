@@ -1,7 +1,7 @@
 {
   "name": "Recovery Tracker",
   "short_name": "Recovery",
-  "description": "আমার প্রতিদিনের রিকভারি এবং খরচের হিসাব",
+  "description": "Amar protidiner hisab",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#f0f2f5",
