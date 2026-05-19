@@ -1,4 +1,3 @@
-/* গুগল ফন্ট ইম্পোর্ট */
 @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 
 :root {
@@ -104,7 +103,6 @@ input:focus, select:focus {
     margin-bottom: 15px;
 }
 
-/* নামাজের চেকবক্স গ্রুপ */
 .checkbox-group {
     display: flex;
     flex-wrap: wrap;
@@ -128,13 +126,6 @@ input:focus, select:focus {
     background: #e8eaed;
 }
 
-.checkbox-group input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-/* অ্যালার্ম টগল সুইচ (iOS স্টাইল) */
 .alarm-toggle {
     display: flex;
     align-items: center;
@@ -142,13 +133,8 @@ input:focus, select:focus {
     background: #fff3e0;
     padding: 10px 15px;
     border-radius: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     border: 1px solid #ffe0b2;
-}
-
-.alarm-toggle label {
-    margin-bottom: 0;
-    color: #e65100;
 }
 
 .switch {
@@ -189,20 +175,12 @@ input:focus, select:focus {
 input:checked + .slider {
     background-color: var(--success-color);
 }
-
 input:checked + .slider:before {
     transform: translateX(20px);
 }
+.slider.round { border-radius: 24px; }
+.slider.round:before { border-radius: 50%; }
 
-.slider.round {
-    border-radius: 24px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-/* বাটন স্টাইল */
 button {
     border: none;
     padding: 12px 15px;
@@ -215,18 +193,10 @@ button {
 }
 
 .btn-primary { background: var(--primary-color); }
-.btn-primary:hover { background: #1557b0; }
-
 .btn-danger { background: var(--danger-color); }
-.btn-danger:hover { background: #b31412; }
-
 .btn-warning { background: var(--warning-color); color: #000; }
-.btn-warning:hover { background: #d98a00; }
-
 .btn-success { background: var(--success-color); width: 100%; margin-top: 10px; font-size: 16px; padding: 15px;}
-.btn-success:hover { background: #0b8043; }
 
-/* কুইক অ্যাড সেকশন (সিগারেট ও খরচ) */
 .counter-box {
     text-align: center;
     background: #fdf2f2;
@@ -234,16 +204,6 @@ button {
     border-radius: 10px;
     border: 1px solid #f9d2d2;
     margin-bottom: 15px;
-}
-
-.counter-box label {
-    font-size: 16px;
-}
-
-#cigCountDisplay {
-    font-size: 24px;
-    color: var(--danger-color);
-    margin-left: 5px;
 }
 
 .action-buttons {
@@ -279,7 +239,6 @@ button {
     font-size: 14px;
 }
 
-/* ট্যাব ও রিপোর্ট সেকশন */
 .tab-buttons {
     display: flex;
     border-bottom: 2px solid var(--border-color);
@@ -314,9 +273,4 @@ button {
     justify-content: space-between;
     border-bottom: 1px dashed #ccc;
     padding-bottom: 5px;
-}
-
-#monthlyStats p span {
-    font-weight: 700;
-    color: var(--primary-color);
 }
