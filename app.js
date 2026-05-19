@@ -1,5 +1,5 @@
-// --- ফায়ারবেস লিংক (এখানে তোর আসল লিংক দিবি, শেষে স্লাশ '/' রাখবি না) ---
-const FIREBASE_URL = "https://তোর-ডাটাবেস-লিংক.firebaseio.com"; 
+// তোর আসল ফায়ারবেস লিংক
+const FIREBASE_URL = "https://myrecoveryapp-a6d50-default-rtdb.firebaseio.com"; 
 
 const dateInput = document.getElementById('currentDate');
 const summaryDateSelector = document.getElementById('summaryDateSelector');
@@ -13,37 +13,26 @@ summaryDateSelector.value = todayString;
 monthSelector.value = currentMonthString;
 
 let currentData = getDefaultData();
-
-// গ্লোবাল ডাটা (টার্গেট সেভিংস এবং ধারদেনা)
 let targetGoal = JSON.parse(localStorage.getItem('recovery_goal')) || { name: '', target: 0 };
-let debts = JSON.parse(localStorage.getItem('recovery_debts')) || [];
+let debts = []; 
 
 function getDefaultData() {
     return {
         basePocketMoney: 0, addedMoney: 0, savings: 0,
         cigarettes: 0, cigPrice: 15, expenses: [], namaz: [],
         namazAlarm: false, gambled: 'no', gamblingLoss: 0,
-        weed: 'no', studyMinutes: 0, closingBalance: 0
+        weed: 'no', studyMinutes: 0, closingBalance: 0, debts: []
     };
 }
 
-// ফায়ারবেস থেকে ডাটা সিঙ্ক করার ফাংশন
+// ফায়ারবেস থেকে লাইভ ডাটা আনা
 async function syncWithFirebase(dateStr) {
-    if (FIREBASE_URL.includes("তোর-ডাটাবেস")) {
-        // ফায়ারবেস না থাকলে লোকাল ডাটা লোড করবে
-        let localData = localStorage.getItem('recovery_' + dateStr);
-        if (localData) currentData = JSON.parse(localData);
-        else currentData = getDefaultData();
-        updateUI(); generateDailySummary(dateStr);
-        return;
-    }
-
     try {
         let res = await fetch(FIREBASE_URL + `/recovery/${dateStr}.json`);
         let data = await res.json();
         if (data) {
             currentData = data;
-            localStorage.setItem('recovery_' + dateStr, JSON.stringify(data)); // অফলাইনের জন্য সেভ
+            localStorage.setItem('recovery_' + dateStr, JSON.stringify(data));
         } else {
             let localData = localStorage.getItem('recovery_' + dateStr);
             currentData = localData ? JSON.parse(localData) : getDefaultData();
@@ -52,7 +41,6 @@ async function syncWithFirebase(dateStr) {
         let localData = localStorage.getItem('recovery_' + dateStr);
         currentData = localData ? JSON.parse(localData) : getDefaultData();
     }
-    
     updateUI(); generateDailySummary(dateStr);
 }
 
@@ -67,7 +55,6 @@ const gambledSelect = document.getElementById('gambled');
 const gamblingLossInput = document.getElementById('gamblingLoss');
 const weedSelect = document.getElementById('weedStatus');
 
-// ফিন্যান্স ক্যালকুলেশন
 function calculateFinance() {
     let otherExpenses = currentData.expenses ? currentData.expenses.reduce((sum, exp) => sum + exp.amount, 0) : 0;
     let cigExpense = currentData.cigarettes * currentData.cigPrice;
@@ -105,7 +92,11 @@ function updateUI() {
     gamblingLossInput.value = currentData.gamblingLoss;
     weedSelect.value = currentData.weed;
 
-    calculateFinance(); updateGoalUI(); renderDebts();
+    // ধারদেনা সিঙ্ক
+    debts = currentData.debts || [];
+    renderDebts();
+
+    calculateFinance(); updateGoalUI(); 
 }
 
 function saveData() {
@@ -120,21 +111,19 @@ function saveData() {
     currentData.namazAlarm = namazAlarmToggle.checked;
     currentData.gambled = gambledSelect.value;
     currentData.weed = weedSelect.value;
+    currentData.debts = debts;
 
     calculateFinance();
     localStorage.setItem('recovery_' + dateInput.value, JSON.stringify(currentData));
     
-    // ফায়ারবেসে পুশ করা
-    if (!FIREBASE_URL.includes("তোর-ডাটাবেস")) {
-        fetch(FIREBASE_URL + `/recovery/${dateInput.value}.json`, {
-            method: 'PUT', body: JSON.stringify(currentData)
-        });
-    }
+    // ফায়ারবেসে পুশ
+    fetch(FIREBASE_URL + `/recovery/${dateInput.value}.json`, {
+        method: 'PUT', body: JSON.stringify(currentData)
+    });
 
     updateGoalUI(); generateDailySummary(summaryDateSelector.value);
 }
 
-// ইভেন্ট লিসেনার
 addedMoneyInput.addEventListener('input', saveData);
 dailySavingsInput.addEventListener('input', saveData);
 cigPriceInput.addEventListener('input', saveData);
@@ -149,7 +138,7 @@ dateInput.addEventListener('change', (e) => {
     syncWithFirebase(e.target.value);
 });
 
-// সিগারেট ও খরচ
+// তাৎক্ষণিক যোগ
 document.getElementById('addCigBtn').addEventListener('click', () => { currentData.cigarettes++; saveData(); updateUI(); });
 document.getElementById('removeCigBtn').addEventListener('click', () => { if(currentData.cigarettes > 0) currentData.cigarettes--; saveData(); updateUI(); });
 document.getElementById('addExpenseBtn').addEventListener('click', () => {
@@ -185,7 +174,7 @@ function generateDailySummary(dateStr) {
 }
 summaryDateSelector.addEventListener('change', (e) => { generateDailySummary(e.target.value); });
 
-// রিপোর্ট ট্যাব লজিক
+// রিপোর্ট ট্যাব
 document.getElementById('tabDaily').addEventListener('click', function() {
     this.classList.add('active'); document.getElementById('tabMonthly').classList.remove('active');
     document.getElementById('dailySummaryContainer').style.display = 'block'; document.getElementById('monthlySummaryContainer').style.display = 'none';
@@ -198,24 +187,21 @@ document.getElementById('tabMonthly').addEventListener('click', function() {
 
 async function calcMonthlyStats(monthStr) {
     let tCig = 0, tCigExp = 0, tLoss = 0, tExp = 0, tSav = 0, gDays = 0, tStudy = 0;
-    
-    if (!FIREBASE_URL.includes("তোর-ডাটাবেস")) {
-        try {
-            let res = await fetch(FIREBASE_URL + `/recovery.json`);
-            let allData = await res.json();
-            if(allData) {
-                for (let key in allData) {
-                    if (key.startsWith(monthStr)) {
-                        let d = allData[key];
-                        tCig += d.cigarettes || 0; tCigExp += (d.cigarettes * (d.cigPrice || 15)) || 0;
-                        tLoss += d.gamblingLoss || 0; tSav += d.savings || 0; tStudy += d.studyMinutes || 0;
-                        if (d.gambled === 'yes') gDays++;
-                        tExp += d.expenses ? d.expenses.reduce((s, e) => s + e.amount, 0) : 0;
-                    }
+    try {
+        let res = await fetch(FIREBASE_URL + `/recovery.json`);
+        let allData = await res.json();
+        if(allData) {
+            for (let key in allData) {
+                if (key.startsWith(monthStr)) {
+                    let d = allData[key];
+                    tCig += d.cigarettes || 0; tCigExp += (d.cigarettes * (d.cigPrice || 15)) || 0;
+                    tLoss += d.gamblingLoss || 0; tSav += d.savings || 0; tStudy += d.studyMinutes || 0;
+                    if (d.gambled === 'yes') gDays++;
+                    tExp += d.expenses ? d.expenses.reduce((s, e) => s + e.amount, 0) : 0;
                 }
             }
-        } catch(e) { console.log(e); }
-    }
+        }
+    } catch(e) { console.log(e); }
     
     document.getElementById('monthlyCig').innerText = tCig; document.getElementById('monthlyCigExpense').innerText = tCigExp;
     document.getElementById('monthlyGamblingLoss').innerText = tLoss; document.getElementById('monthlyTotalExpense').innerText = tExp;
@@ -224,14 +210,59 @@ async function calcMonthlyStats(monthStr) {
 }
 monthSelector.addEventListener('change', (e) => calcMonthlyStats(e.target.value));
 
-// টার্গেট সেভিংস এবং ধারদেনার বাকি ফাংশনগুলো আগের মতোই থাকবে
-function updateGoalUI() { /* আগের কোড */ }
-document.getElementById('setGoalBtn').addEventListener('click', () => { /* আগের কোড */ });
-function renderDebts() { /* আগের কোড */ }
-window.toggleDebt = (index) => { debts[index].paid = !debts[index].paid; saveDebts(); };
-window.deleteDebt = (index) => { debts.splice(index, 1); saveDebts(); };
-function saveDebts() { localStorage.setItem('recovery_debts', JSON.stringify(debts)); renderDebts(); }
-document.getElementById('addDebtBtn').addEventListener('click', () => { /* আগের কোড */ });
+// টার্গেট সেভিংস এবং ধারদেনা
+function updateGoalUI() {
+    if(targetGoal.target > 0) {
+        let totalSaved = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            if (localStorage.key(i).startsWith('recovery_')) {
+                let d = JSON.parse(localStorage.getItem(localStorage.key(i)));
+                totalSaved += d.savings || 0;
+            }
+        }
+        let percentage = Math.min((totalSaved / targetGoal.target) * 100, 100);
+        document.getElementById('goalStatusText').innerHTML = `<strong>${targetGoal.name}</strong> এর জন্য জমানো হয়েছে: ${totalSaved}/${targetGoal.target} ৳`;
+        document.getElementById('goalProgressBar').style.width = percentage + '%';
+    } else {
+        document.getElementById('goalStatusText').innerText = "কোনো টার্গেট সেট করা নেই";
+        document.getElementById('goalProgressBar').style.width = '0%';
+    }
+}
+document.getElementById('setGoalBtn').addEventListener('click', () => {
+    let name = document.getElementById('goalName').value;
+    let amt = parseFloat(document.getElementById('goalAmount').value);
+    if(name && amt) {
+        targetGoal = { name: name, target: amt };
+        localStorage.setItem('recovery_goal', JSON.stringify(targetGoal));
+        updateGoalUI(); alert('নতুন সেভিংস টার্গেট সেট করা হয়েছে!');
+    }
+});
+
+function renderDebts() {
+    const list = document.getElementById('debtList'); list.innerHTML = '';
+    debts.forEach((debt, index) => {
+        let li = document.createElement('li');
+        let typeClass = debt.type === 'owe_them' ? 'debt-owe' : 'debt-get';
+        let typeText = debt.type === 'owe_them' ? 'সে পাবে' : 'আমি পাব';
+        if(debt.paid) li.classList.add('debt-done');
+        li.innerHTML = `<div><strong>${debt.person}</strong>: ${debt.amount} ৳ <br><span class="debt-badge ${typeClass}">${typeText}</span></div>
+                        <div><button onclick="toggleDebt(${index})" style="background:#0984e3; padding:6px 10px; font-size:12px;">${debt.paid ? 'আন-পেইড করুন' : 'শোধ হয়েছে'}</button>
+                        <button onclick="deleteDebt(${index})" style="background:#d63031; padding:6px 10px; font-size:12px;">X</button></div>`;
+        list.appendChild(li);
+    });
+}
+window.toggleDebt = (index) => { debts[index].paid = !debts[index].paid; saveData(); };
+window.deleteDebt = (index) => { debts.splice(index, 1); saveData(); };
+document.getElementById('addDebtBtn').addEventListener('click', () => {
+    let person = document.getElementById('debtPerson').value;
+    let amt = parseFloat(document.getElementById('debtAmount').value);
+    let type = document.getElementById('debtType').value;
+    if(person && amt) {
+        debts.push({ person, amount: amt, type, paid: false });
+        saveData();
+        document.getElementById('debtPerson').value = ''; document.getElementById('debtAmount').value = '';
+    }
+});
 
 // পোমোডোরো টাইমার লজিক
 let timerInterval; let timeRemaining = 0; let isTimerRunning = false; let currentSessionMinutes = 0;
@@ -255,7 +286,7 @@ document.getElementById('startTimerBtn').addEventListener('click', () => {
 });
 document.getElementById('stopTimerBtn').addEventListener('click', () => { clearInterval(timerInterval); isTimerRunning = false; timeRemaining = 0; updateTimerDisplay(); });
 
-// অ্যালার্ম মডাল এবং অটো নামাজ অ্যালার্ম
+// অ্যালার্ম মডাল ও অটো নামাজ অ্যালার্ম
 const alarmModal = document.getElementById('alarmModal');
 const alarmTitle = document.getElementById('alarmTitle');
 const stopAlarmBtn = document.getElementById('stopAlarmBtn');
@@ -263,5 +294,28 @@ let currentPlayingAudio = null;
 function playAlarm(audioElement, titleText) { alarmTitle.innerText = titleText; alarmModal.style.display = 'flex'; currentPlayingAudio = audioElement; currentPlayingAudio.play(); }
 stopAlarmBtn.addEventListener('click', () => { if(currentPlayingAudio) { currentPlayingAudio.pause(); currentPlayingAudio.currentTime = 0; } alarmModal.style.display = 'none'; });
 
-// ইনিশিয়াল লোড
+const adhanAudio = document.getElementById('adhanAudio');
+let prayerTimes = {};
+async function fetchPrayerTimes() {
+    try {
+        let res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Dhaka&country=Bangladesh&method=1');
+        let data = await res.json();
+        prayerTimes = data.data.timings;
+    } catch(err) {}
+}
+function checkAlarm() {
+    if(!namazAlarmToggle.checked) return;
+    let now = new Date();
+    let timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    let currentWakt = "";
+    if(timeStr === prayerTimes.Fajr) currentWakt = "ফজর";
+    else if(timeStr === prayerTimes.Dhuhr) currentWakt = "যোহর";
+    else if(timeStr === prayerTimes.Asr) currentWakt = "আসর";
+    else if(timeStr === prayerTimes.Maghrib) currentWakt = "মাগরিব";
+    else if(timeStr === prayerTimes.Isha) currentWakt = "এশা";
+
+    if(currentWakt !== "") playAlarm(adhanAudio, `🕌 ${currentWakt} নামাজের সময় হয়েছে!`);
+}
+fetchPrayerTimes(); setInterval(checkAlarm, 60000);
+
 syncWithFirebase(todayString);
