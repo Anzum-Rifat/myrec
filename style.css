@@ -1,0 +1,322 @@
+/* গুগল ফন্ট ইম্পোর্ট */
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #1a73e8;
+    --success-color: #0f9d58;
+    --danger-color: #d93025;
+    --warning-color: #f29900;
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-main: #202124;
+    --text-muted: #5f6368;
+    --border-color: #dadce0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Hind Siliguri', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    padding: 20px 10px;
+}
+
+.container {
+    background: var(--card-bg);
+    max-width: 550px;
+    width: 100%;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+    font-size: 24px;
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+h3 {
+    font-size: 18px;
+    color: var(--text-main);
+    margin-bottom: 15px;
+    border-bottom: 2px solid #e8eaed;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--text-main);
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: var(--border-color);
+    margin: 25px 0;
+}
+
+.section {
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="date"],
+input[type="month"],
+input[type="number"],
+input[type="text"],
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+    background-color: #f8f9fa;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary-color);
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+/* নামাজের চেকবক্স গ্রুপ */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #f1f3f4;
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.checkbox-group label:hover {
+    background: #e8eaed;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* অ্যালার্ম টগল সুইচ (iOS স্টাইল) */
+.alarm-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff3e0;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ffe0b2;
+}
+
+.alarm-toggle label {
+    margin-bottom: 0;
+    color: #e65100;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--success-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* বাটন স্টাইল */
+button {
+    border: none;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    color: white;
+}
+
+.btn-primary { background: var(--primary-color); }
+.btn-primary:hover { background: #1557b0; }
+
+.btn-danger { background: var(--danger-color); }
+.btn-danger:hover { background: #b31412; }
+
+.btn-warning { background: var(--warning-color); color: #000; }
+.btn-warning:hover { background: #d98a00; }
+
+.btn-success { background: var(--success-color); width: 100%; margin-top: 10px; font-size: 16px; padding: 15px;}
+.btn-success:hover { background: #0b8043; }
+
+/* কুইক অ্যাড সেকশন (সিগারেট ও খরচ) */
+.counter-box {
+    text-align: center;
+    background: #fdf2f2;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #f9d2d2;
+    margin-bottom: 15px;
+}
+
+.counter-box label {
+    font-size: 16px;
+}
+
+#cigCountDisplay {
+    font-size: 24px;
+    color: var(--danger-color);
+    margin-left: 5px;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.expense-box {
+    background: #e8f0fe;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #d2e3fc;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.expense-list {
+    list-style-type: none;
+    margin-top: 15px;
+}
+
+.expense-list li {
+    background: #fff;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+/* ট্যাব ও রিপোর্ট সেকশন */
+.tab-buttons {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 0;
+    border-bottom: 3px solid transparent;
+    padding: 10px 20px;
+    margin-bottom: -2px;
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.report-container {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+#monthlyStats p {
+    font-size: 15px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #ccc;
+    padding-bottom: 5px;
+}
+
+#monthlyStats p span {
+    font-weight: 700;
+    color: var(--primary-color);
+}

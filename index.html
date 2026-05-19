@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ডেইলি রিকভারি ড্যাশবোর্ড</title>
+    <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a73e8">
+</head>
+<body>
+    <div class="container">
+        <h1>আমার রিকভারি ড্যাশবোর্ড 🛡️</h1>
+        
+        <!-- তারিখ নির্বাচন -->
+        <div class="header-section">
+            <label for="currentDate">আজকের তারিখ:</label>
+            <input type="date" id="currentDate">
+        </div>
+
+        <hr>
+
+        <!-- নামাজের সেকশন ও অ্যালার্ম -->
+        <div class="section namaz-section">
+            <h3>১. নামাজ ও আধ্যাত্মিক শক্তি</h3>
+            <div class="alarm-toggle">
+                <label>নামাজের অ্যালার্ম/রিমাইন্ডার:</label>
+                <label class="switch">
+                    <input type="checkbox" id="namazAlarmToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="checkbox-group namaz-group">
+                <label><input type="checkbox" class="namaz-wakt" value="ফজর"> ফজর</label>
+                <label><input type="checkbox" class="namaz-wakt" value="যোহর"> যোহর</label>
+                <label><input type="checkbox" class="namaz-wakt" value="আসর"> আসর</label>
+                <label><input type="checkbox" class="namaz-wakt" value="মাগরিব"> মাগরিব</label>
+                <label><input type="checkbox" class="namaz-wakt" value="এশা"> এশা</label>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- ইনক্রিমেন্টাল ট্র্যাকিং (সিগারেট ও খরচ) -->
+        <div class="section quick-add-section">
+            <h3>২. তাৎক্ষণিক হিসাব (Quick Add)</h3>
+            
+            <!-- সিগারেট কাউন্টার -->
+            <div class="counter-box">
+                <label>আজকের সিগারেট সংখ্যা: <strong id="cigCountDisplay">0</strong></label>
+                <div class="action-buttons">
+                    <button id="addCigBtn" class="btn-warning">+১ সিগারেট খেলাম</button>
+                    <button id="removeCigBtn" class="btn-danger">-১ (ভুল হলে)</button>
+                </div>
+            </div>
+
+            <!-- তাৎক্ষণিক খরচ -->
+            <div class="expense-box">
+                <label>নতুন খরচ যোগ কর (জুয়া বাদে):</label>
+                <input type="text" id="expenseNote" placeholder="কীসে খরচ করলি? (যেমন: চা, রিকশা)">
+                <input type="number" id="expenseAmount" placeholder="কত টাকা?">
+                <button id="addExpenseBtn" class="btn-primary">খরচ যোগ কর</button>
+            </div>
+            <!-- সারাদিনের খরচের লিস্ট -->
+            <ul id="dailyExpenseList" class="expense-list">
+                <!-- জাভাস্ক্রিপ্ট দিয়ে এখানে খরচের লিস্ট যুক্ত হবে -->
+            </ul>
+        </div>
+
+        <hr>
+
+        <!-- জুয়া এবং অন্যান্য নেশা (দিনের শেষে বা যখন খুশি) -->
+        <div class="section gambling-section">
+            <h3>৩. আসক্তি ও ভুলগুলো</h3>
+            <div class="input-group">
+                <label for="gambled">জুয়া খেলেছিস?</label>
+                <select id="gambled">
+                    <option value="no">না, খেলিনি (আলহামদুলিল্লাহ!)</option>
+                    <option value="yes">হ্যাঁ, খেলেছি</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="gamblingLoss">জুয়ায় লস (টাকা):</label>
+                <input type="number" id="gamblingLoss" value="0">
+            </div>
+            <div class="input-group">
+                <label for="weedStatus">মদ/গাঁজা?</label>
+                <select id="weedStatus">
+                    <option value="no">না</option>
+                    <option value="yes">হ্যাঁ</option>
+                </select>
+            </div>
+            <button id="saveDailyRecordBtn" class="btn-success">সারাদিনের চূড়ান্ত হিসাব সেভ কর</button>
+        </div>
+
+        <hr>
+
+        <!-- সামারি ও রিপোর্ট সেকশন (ডেইলি ও মান্থলি) -->
+        <div class="section reports-section">
+            <h3>৪. রিপোর্ট ও সামারি 📊</h3>
+            
+            <!-- ট্যাব বাটন -->
+            <div class="tab-buttons">
+                <button id="tabDaily" class="tab-btn active">আজকের সামারি</button>
+                <button id="tabMonthly" class="tab-btn">মাসিক রিপোর্ট</button>
+            </div>
+
+            <!-- ডেইলি সামারি কন্টেইনার -->
+            <div id="dailySummaryContainer" class="report-container active-report">
+                <h4>আজকের সারাংশ:</h4>
+                <p id="dailySummaryText">এখনো কোনো ডাটা নেই।</p>
+            </div>
+
+            <!-- মান্থলি সামারি কন্টেইনার -->
+            <div id="monthlySummaryContainer" class="report-container" style="display: none;">
+                <div class="input-group">
+                    <label for="monthSelector">মাস নির্বাচন কর:</label>
+                    <input type="month" id="monthSelector">
+                </div>
+                <h4>এই মাসের সারাংশ:</h4>
+                <div id="monthlyStats">
+                    <p>মোট সিগারেট: <span id="monthlyCig">0</span></p>
+                    <p>জুয়ায় মোট লস: <span id="monthlyGamblingLoss">0</span> টাকা</p>
+                    <p>অন্যান্য মোট খরচ: <span id="monthlyTotalExpense">0</span> টাকা</p>
+                    <p>মোট জুয়া খেলেছিস: <span id="monthlyGamblingDays">0</span> দিন</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
