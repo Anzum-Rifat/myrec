@@ -28,7 +28,7 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-            <p style="font-size: 12px; color: #5f6368; margin-bottom: 10px;">* অ্যালার্ম অন রাখলে নামাজের ওয়াক্ত শুরু হলেই স্বয়ংক্রিয়ভাবে বেজে উঠবে।</p>
+            <p class="hint-text">* অ্যালার্ম চালু রাখলে ওয়াক্ত শুরু হলেই স্বয়ংক্রিয়ভাবে বেজে উঠবে।</p>
             
             <div class="checkbox-group namaz-group">
                 <label><input type="checkbox" class="namaz-wakt" value="ফজর"> ফজর</label>
@@ -45,24 +45,51 @@
         <div class="section finance-section">
             <h3>২. পকেট মানি ও সেভিংস 💰</h3>
             <div class="input-group">
-                <label for="pocketMoney">আজকের শুরুতে পকেট মানি ছিল:</label>
-                <input type="number" id="pocketMoney" value="0" placeholder="যেমন: ১০০০">
+                <label>আগের দিনের অবশিষ্ট ব্যালেন্স: <strong id="carryOverBalance" style="color: #1a73e8;">0</strong> ৳</label>
             </div>
             <div class="input-group">
-                <label for="dailySavings">আজকে কত টাকা সেভিংস/জমা করলি?</label>
+                <label for="addedMoney">আজ নতুন করে পকেট মানি পেয়েছেন? (যোগ করুন):</label>
+                <input type="number" id="addedMoney" value="0" placeholder="যেমন: ১০০">
+            </div>
+            <div class="input-group">
+                <label for="dailySavings">আজ কত টাকা সেভিংস/জমা করলেন?</label>
                 <input type="number" id="dailySavings" value="0" placeholder="যেমন: ৫০">
             </div>
             
-            <div style="background: #e6f4ea; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #ceead6;">
-                <p style="margin-bottom: 5px;">আজকের মোট খরচ: <strong id="totalSpentToday" style="color: #d93025; font-size: 16px;">0</strong> ৳</p>
-                <p>অবশিষ্ট পকেট মানি: <strong id="currentBalance" style="color: #0f9d58; font-size: 18px;">0</strong> ৳</p>
+            <div class="balance-board">
+                <p>আজকের মোট খরচ: <strong id="totalSpentToday" class="text-danger">0</strong> ৳</p>
+                <p>বর্তমান অবশিষ্ট ব্যালেন্স: <strong id="currentBalance" class="text-success">0</strong> ৳</p>
             </div>
         </div>
 
         <hr>
 
+        <div class="section pomodoro-section">
+            <h3>৩. পড়াশোনা (পোমোডোরো টাইমার) 📚</h3>
+            <p class="hint-text">মনোযোগ ধরে রাখতে টাইমার ব্যবহার করে পড়াশোনা করুন।</p>
+            
+            <div class="timer-display">
+                <span id="minutesDisplay">২৫</span>:<span id="secondsDisplay">০০</span>
+            </div>
+            
+            <div class="input-group timer-input">
+                <label for="customStudyTime">কত মিনিটের টাইমার সেট করবেন?</label>
+                <input type="number" id="customStudyTime" value="25" min="1">
+            </div>
+            
+            <div class="action-buttons">
+                <button id="startTimerBtn" class="btn-success">টাইমার শুরু করুন</button>
+                <button id="stopTimerBtn" class="btn-danger">থামান</button>
+            </div>
+            
+            <p style="margin-top: 15px; text-align: center; font-weight: bold;">আজকে মোট পড়াশোনা করেছেন: <strong id="totalStudyDisplay" style="color: #1a73e8; font-size: 20px;">0</strong> মিনিট</p>
+            <audio id="studyAlarmAudio" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+        </div>
+
+        <hr>
+
         <div class="section quick-add-section">
-            <h3>৩. তাৎক্ষণিক হিসাব (Quick Add) ⚡</h3>
+            <h3>৪. তাৎক্ষণিক খরচ (Quick Add) ⚡</h3>
             
             <div class="counter-box">
                 <label>আজকের সিগারেট সংখ্যা: <strong id="cigCountDisplay">0</strong></label>
@@ -70,7 +97,7 @@
                     <label for="cigPrice">প্রতি সিগারেটের দাম (টাকা):</label>
                     <input type="number" id="cigPrice" value="15">
                 </div>
-                <p style="margin-top: 5px; font-size: 14px;">সিগারেটে আজকের মোট খরচ: <strong id="cigTotalCostDisplay" style="color: #d93025;">0</strong> ৳</p>
+                <p style="margin-top: 5px; font-size: 14px;">সিগারেটে আজকের মোট খরচ: <strong id="cigTotalCostDisplay" class="text-danger">0</strong> ৳</p>
                 
                 <div class="action-buttons">
                     <button id="addCigBtn" class="btn-warning">+১ সিগারেট খেলাম</button>
@@ -79,21 +106,20 @@
             </div>
 
             <div class="expense-box">
-                <label>নতুন খরচ যোগ কর (জুয়া বা সিগারেট বাদে):</label>
-                <input type="text" id="expenseNote" placeholder="কীসে খরচ করলি? (যেমন: রিকশা)">
+                <label>নতুন খরচ যোগ করুন (জুয়া বা সিগারেট বাদে):</label>
+                <input type="text" id="expenseNote" placeholder="কীসে খরচ করলেন? (যেমন: রিকশা)">
                 <input type="number" id="expenseAmount" placeholder="কত টাকা?">
-                <button id="addExpenseBtn" class="btn-primary">খরচ যোগ কর</button>
+                <button id="addExpenseBtn" class="btn-primary">খরচ যোগ করুন</button>
             </div>
-            <ul id="dailyExpenseList" class="expense-list">
-                </ul>
+            <ul id="dailyExpenseList" class="expense-list"></ul>
         </div>
 
         <hr>
 
         <div class="section gambling-section">
-            <h3>৪. আসক্তি ও ভুলগুলো ⚠️</h3>
+            <h3>৫. আসক্তি ও ভুলগুলো ⚠️</h3>
             <div class="input-group">
-                <label for="gambled">জুয়া খেলেছিস?</label>
+                <label for="gambled">জুয়া খেলেছেন?</label>
                 <select id="gambled">
                     <option value="no">না, খেলিনি (আলহামদুলিল্লাহ!)</option>
                     <option value="yes">হ্যাঁ, খেলেছি</option>
@@ -110,13 +136,13 @@
                     <option value="yes">হ্যাঁ</option>
                 </select>
             </div>
-            <button id="saveDailyRecordBtn" class="btn-success">সারাদিনের চূড়ান্ত হিসাব সেভ কর</button>
+            <button id="saveDailyRecordBtn" class="btn-success" style="width: 100%; margin-top: 15px; padding: 15px; font-size: 16px;">সারাদিনের চূড়ান্ত হিসাব সংরক্ষণ করুন</button>
         </div>
 
         <hr>
 
         <div class="section reports-section">
-            <h3>৫. রিপোর্ট ও সামারি 📊</h3>
+            <h3>৬. রিপোর্ট ও সামারি 📊</h3>
             
             <div class="tab-buttons">
                 <button id="tabDaily" class="tab-btn active">আজকের সামারি</button>
@@ -130,16 +156,17 @@
 
             <div id="monthlySummaryContainer" class="report-container" style="display: none;">
                 <div class="input-group">
-                    <label for="monthSelector">মাস নির্বাচন কর:</label>
+                    <label for="monthSelector">মাস নির্বাচন করুন:</label>
                     <input type="month" id="monthSelector">
                 </div>
                 <h4>এই মাসের সারাংশ:</h4>
                 <div id="monthlyStats">
+                    <p>মোট পড়াশোনা: <span id="monthlyStudy" style="color: #1a73e8;">0</span> মিনিট</p>
                     <p>মোট সিগারেট: <span id="monthlyCig">0</span> (খরচ: <span id="monthlyCigExpense">0</span> ৳)</p>
                     <p>জুয়ায় মোট লস: <span id="monthlyGamblingLoss">0</span> ৳</p>
                     <p>অন্যান্য মোট খরচ: <span id="monthlyTotalExpense">0</span> ৳</p>
                     <p style="color: #0f9d58;">মোট সেভিংস: <span id="monthlySavings">0</span> ৳</p>
-                    <p>মোট জুয়া খেলেছিস: <span id="monthlyGamblingDays">0</span> দিন</p>
+                    <p>মোট জুয়া খেলেছেন: <span id="monthlyGamblingDays">0</span> দিন</p>
                 </div>
             </div>
         </div>
